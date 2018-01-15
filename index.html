@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>RPS Multiplayer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 jumbotron">
+                Rock Paper Scissors
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" id="playerHeader">
+                <label for="player-name">Your Name</label>
+                <input class="form-control" id="player-name" type="text">
+                <button class="startButton">Start</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3" id="player1Game">
+                <div class="row">
+                    <div class="col-md-12" id="player1Name">Waiting for Player 1</div>
+                </div>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-3" id="results"></div>
+            <div class="col-md-1"></div>
+            <div class="col-md-3" id="player2Game">
+                <div class="row">
+                    <div class="col-md-12" id="player2Name">Waiting for Player 2</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.8.2/firebase.js"></script>
+<script src="assets/javascript/app.js"></script>
+</html>
