@@ -14,6 +14,9 @@ var database = firebase.database();
 var playerCount = 0;
 var playerName = "";
 var playerData = database.ref('player/'+playerCount);
+var player1choice = "";
+var player2choice = "";
+var playerChoice = "";
 //Using this variable to trigger the game result
 var turnCounter = 0
 //win/loss variables
@@ -21,6 +24,67 @@ var player1Win = 0;
 var player1Loss = 0;
 var player2Win = 0;
 var player2Loss = 0;
+
+//reset timer
+var reset;
+function resetTimer(){
+    //clear the result
+    $("#results").html("");
+    //add the buttons again for each player
+    $(".player"+sessionStorage.getItem('currentPlayerNumber')+"buttons").html('<button class="rps" value="rock">Rock</button><button class="rps" value="paper">Paper</button><button class="rps" value="scissors">Scissors</button>');
+    //clear the other players choice
+    $(".pcClear").html("");
+};
+//player2 winner function
+function player2Winner (){
+    //show other players choice
+    if(sessionStorage.getItem("currentPlayerNumber") === "2"){
+        $("#player1Game").append('<div class="pcClear">'+player1choice+'</div>');
+    };
+    if(sessionStorage.getItem("currentPlayerNumber") === "1"){
+        $("#player2Game").append('<div class="pcClear">'+player2choice+'</div>');
+    };
+    //reset the selections made to 0
+    turnCounter = 0;
+    //send it to the DB
+    database.ref('turnCounter').set(turnCounter);
+    //update wins and losses
+    player2Win ++;
+    player1Loss ++;
+    database.ref('player/1/losses').set(player1Loss);
+    database.ref('player/2/wins').set(player2Win);
+    //run the reset timer
+    reset = setTimeout(resetTimer,3000);
+};
+//function for the other player winning
+function player1Winner (){
+    if(sessionStorage.getItem("currentPlayerNumber") === "2"){
+        $("#player1Game").append('<div class="pcClear">'+player1choice+'</div>');
+    };
+    if(sessionStorage.getItem("currentPlayerNumber") === "1"){
+        $("#player2Game").append('<div class="pcClear">'+player2choice+'</div>');
+    };
+    turnCounter = 0;
+    database.ref('turnCounter').set(turnCounter);
+    player1Win ++;
+    player2Loss ++;
+    database.ref('player/2/losses').set(player2Loss);
+    database.ref('player/1/wins').set(player1Win);
+    reset = setTimeout(resetTimer,3000);
+};
+//function for a tie
+function tie(){
+    if(sessionStorage.getItem("currentPlayerNumber") === "2"){
+        $("#player1Game").append('<div class="pcClear">'+player1choice+'</div>');
+    };
+    if(sessionStorage.getItem("currentPlayerNumber") === "1"){
+        $("#player2Game").append('<div class="pcClear">'+player2choice+'</div>');
+    };
+    $("#results").html("Tie");
+    turnCounter = 0;
+    database.ref('turnCounter').set(turnCounter);
+    reset = setTimeout(resetTimer,3000);
+}
 
 //take the player name and log it in firebase
 $(".startButton").on("click", function(){
@@ -41,10 +105,10 @@ $(".startButton").on("click", function(){
             "name": playerName,
             "wins": 0,
             "losses": 0,
+            "choice": playerChoice
         });
         //list the name and buttons for the joining player    
         $("#playerHeader").html("Hi " + playerName + " you are Player "+playerCount);
-        $("#player"+playerCount+"Name").html(playerName);
         $("#player"+playerCount+"Game").append('<div class="player'+playerCount+'buttons"></div>');
         $(".player"+playerCount+"buttons").append('<button class="rps" value="rock">Rock</button>');
         $(".player"+playerCount+"buttons").append('<button class="rps" value="paper">Paper</button>');
@@ -58,15 +122,14 @@ $(".startButton").on("click", function(){
 });
 //assign the choice of the player
 $(document).on("click", ".rps", function(){
-    //use turncounter to trigger result
+        //use turncounter to trigger result
         turnCounter ++;
+        //update firebase turnCounter
         database.ref('turnCounter').set(turnCounter);
-        playerData.set({
-            "name": playerName,
-            "wins": 0,
-            "losses": 0,
-            "choice": $(this).val(),
-        })
+        //setting choice playerChoice as players selection
+        playerChoice = $(this).val();
+        //storing selection in firebase
+        database.ref('player/'+sessionStorage.getItem("currentPlayerNumber")+'/choice').set(playerChoice);
         //assign the pick and override the buttons (use session storage so that both players can pick independently)
         $(".player"+sessionStorage.getItem("currentPlayerNumber")+"buttons").html($(this).val());
 });
@@ -88,68 +151,87 @@ database.ref().on("value", function(snapshot) {
     }
     if (snapshot.child('turnCounter').val() === 2){
         //show both picks to players
-        if(sessionStorage.getItem("currentPlayerNumber") === "2"){
-            $("#player1Name").append('<div>'+snapshot.child("player/1/choice").val()+'</div>');
-        }
-        if(sessionStorage.getItem("currentPlayerNumber") === "1"){
-        $("#player2Name").append('<div>'+snapshot.child("player/2/choice").val()+'</div>');
-        }
+        player1choice = snapshot.child('player/1/choice').val();
+        player2choice = snapshot.child('player/2/choice').val();
         if(snapshot.child('player/1/choice').val() === "rock"){
             if(snapshot.child('player/2/choice').val() === "rock"){
-                $("#results").html("Tie");
+                tie();
             }
             else if (snapshot.child('player/2/choice').val() === "paper"){
                 $("#results").html(snapshot.child('player/2/name').val()+" Wins!");
-                player2Win ++;
-                player1Loss ++;
-                database.ref('player/1/losses').set(player1Loss);
-                database.ref('player/2/wins').set(player2Win);
+                player2Winner();
             }
             else if (snapshot.child('player/2/choice').val() === "scissors"){
                 $("#results").html(snapshot.child('player/1/name').val()+" Wins!");
-                player1Win ++;
-                Player2Loss ++;
-                database.ref('player/2/losses').set(player2Loss);
-                database.ref('player/1/wins').set(player1Win);
+                player1Winner();
             }
         }
         else if(snapshot.child('player/1/choice').val() === "paper"){
             if(snapshot.child('player/2/choice').val() === "paper"){
-                $("#results").html("Tie");
+                tie();
             }
             else if (snapshot.child('player/2/choice').val() === "scissors"){
                 $("#results").html(snapshot.child('player/2/name').val()+" Wins!");
-                player2Win ++;
-                player1Loss ++;
-                database.ref('player/1/losses').set(player1Loss);
-                database.ref('player/2/wins').set(player2Win);
+                player2Winner();
             }
             else if (snapshot.child('player/2/choice').val() === "rock"){
                 $("#results").html(snapshot.child('player/1/name').val()+" Wins!");
-                player1Win ++;
-                Player2Loss ++;
-                database.ref('player/2/losses').set(player2Loss);
-                database.ref('player/1/wins').set(player1Win);
+                player1Winner();
             }
         }
         else if(snapshot.child('player/1/choice').val() === "scissors"){
             if(snapshot.child('player/2/choice').val() === "scissors"){
-                $("#results").html("Tie");
+                tie();
             }
             else if (snapshot.child('player/2/choice').val() === "rock"){
                 $("#results").html(snapshot.child('player/2/name').val()+" Wins!");
-                player2Win ++;
-                player1Loss ++;
-                database.ref('player/1/losses').set(player1Loss);
-                database.ref('player/2/wins').set(player2Win);
+                player2Winner();
             }
             else if (snapshot.child('player/2/choice').val() === "paper"){
                 $("#results").html(snapshot.child('player/1/name').val()+" Wins!");
-                player1Win ++;
-                Player2Loss ++;
-                database.ref('player/2/losses').set(player2Loss);
-                database.ref('player/1/wins').set(player1Win);
+                player1Winner();
             }
         }
     }
  });
+//Disconnected
+var noplayers = 0;
+var oneplayer = 1;
+var connectedRef = database.ref('.info/connected');
+connectedRef.on('value', function(snap) {
+    if (snap.val() === true) {      
+        // When I disconnect, remove me
+        database.ref('player/'+sessionStorage.getItem('currentPlayerNumber')).onDisconnect().remove();
+    };
+});
+
+//chat app
+$("#send-button").on("click", function () {
+    var user = $("#user").val();
+    var message = $("#message").val();
+    saveMessage(user, message);
+});
+function saveMessage(user, message) {
+    database.ref().push({
+      "message": message,
+      "user": user
+    });
+};
+database.ref().on("value", function (snapshot) {
+    if (snapshot.val() == null) {
+      return;
+    }
+    $("#message-list").empty();
+    var messages = snapshot.val();
+    var keys = Object.keys(messages);
+  
+    for (var i = 0; i < keys.length; i++) {
+      var aKey = keys[i];
+      var messageUser = messages[aKey].user;
+      var currentUser = $("#user").val();
+      var color = currentUser === messageUser ? "blue": "";
+      var messageHTML = "";
+      messageHTML = `<div><b style="color: ${color}">${messages[aKey].user}</b>: ${snapshot.val()[aKey].message}</div>`;
+      $("#message-list").append(messageHTML);
+    }
+});
