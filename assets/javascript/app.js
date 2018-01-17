@@ -122,14 +122,14 @@ $(".startButton").on("click", function(){
 });
 //assign the choice of the player
 $(document).on("click", ".rps", function(){
-        //use turncounter to trigger result
-        turnCounter ++;
-        //update firebase turnCounter
-        database.ref('turnCounter').set(turnCounter);
         //setting choice playerChoice as players selection
         playerChoice = $(this).val();
         //storing selection in firebase
         database.ref('player/'+sessionStorage.getItem("currentPlayerNumber")+'/choice').set(playerChoice);
+        //use turncounter to trigger result
+        turnCounter ++;
+        //update firebase turnCounter
+        database.ref('turnCounter').set(turnCounter);
         //assign the pick and override the buttons (use session storage so that both players can pick independently)
         $(".player"+sessionStorage.getItem("currentPlayerNumber")+"buttons").html($(this).val());
 });
@@ -195,13 +195,19 @@ database.ref().on("value", function(snapshot) {
     }
  });
 //Disconnected
-var noplayers = 0;
-var oneplayer = 1;
 var connectedRef = database.ref('.info/connected');
 connectedRef.on('value', function(snap) {
     if (snap.val() === true) {      
         // When I disconnect, remove me
         database.ref('player/'+sessionStorage.getItem('currentPlayerNumber')).onDisconnect().remove();
+        if(sessionStorage.getItem('currentPlayerNumber') === "2"){
+            database.ref('player/'+sessionStorage.getItem('currentPlayerNumber')).onDisconnect(playerCount = 1);
+            database.ref('count').set(playerCount);
+        }
+        else if(sessionStorage.getItem('currentPlayerNumber') === "1"){
+            database.ref('player/'+sessionStorage.getItem('currentPlayerNumber')).onDisconnect(playerCount = 0);
+            database.ref('count').set(playerCount);
+        }
     };
 });
 
@@ -212,12 +218,12 @@ $("#send-button").on("click", function () {
     saveMessage(user, message);
 });
 function saveMessage(user, message) {
-    database.ref().push({
+    database.ref('mslist').push({
       "message": message,
       "user": user
     });
 };
-database.ref().on("value", function (snapshot) {
+database.ref('mslist').on("value", function (snapshot) {
     if (snapshot.val() == null) {
       return;
     }
