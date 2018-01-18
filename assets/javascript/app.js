@@ -110,9 +110,9 @@ $(".startButton").on("click", function(){
         //list the name and buttons for the joining player    
         $("#playerHeader").html("Hi " + playerName + " you are Player "+playerCount);
         $("#player"+playerCount+"Game").append('<div class="player'+playerCount+'buttons"></div>');
-        $(".player"+playerCount+"buttons").append('<button class="rps" value="rock">Rock</button>');
-        $(".player"+playerCount+"buttons").append('<button class="rps" value="paper">Paper</button>');
-        $(".player"+playerCount+"buttons").append('<button class="rps" value="scissors">Scissors</button>');
+        $(".player"+playerCount+"buttons").append('<button class="rps btn btn-primary" value="rock">Rock</button>');
+        $(".player"+playerCount+"buttons").append('<button class="rps btn btn-success" value="paper">Paper</button>');
+        $(".player"+playerCount+"buttons").append('<button class="rps btn btn-danger" value="scissors">Scissors</button>');
         }
     //if there are two many players let the player know
     else {
